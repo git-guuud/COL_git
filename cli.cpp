@@ -7,17 +7,17 @@ using namespace std;
 int main() {
     unordered_map<string, File*> open_files;
 
-    // auto ver_cmp = [](File* a, File* b) {
-    //     return a->active_version->version_id > b->active_version->version_id;
-    // };
+    auto ver_cmp = [](File* a, File* b) {
+        return a->active_version->version_id > b->active_version->version_id;
+    };
 
-    // FileHeap<File*, decltype(ver_cmp)> ver_heap(ver_cmp);
+    FileHeap<File*, decltype(ver_cmp)> ver_heap(ver_cmp);
 
-    // auto mod_cmp = [](File* a, File* b) {
-    //     return a->last_modified > b->last_modified;
-    // };
+    auto mod_cmp = [](File* a, File* b) {
+        return a->last_modified > b->last_modified;
+    };
 
-    // FileHeap<File*, decltype(mod_cmp)> mod_heap(mod_cmp);
+    FileHeap<File*, decltype(mod_cmp)> mod_heap(mod_cmp);
 
     cout << "CLI running..." << endl; 
     while (1) {
@@ -25,6 +25,32 @@ int main() {
         int version_id = -1;
         cin >> cmd;
         while (cin.peek() == ' ') cin.ignore();
+
+        if (cmd == "RECENT_FILES" || cmd == "BIGGEST_TREES") 
+        {
+            int k;
+            if (!(cin >> k) || k<0) {
+                cout << "Invalid num. Please enter a positive integer." << endl;
+                cin.clear();
+                cin.ignore(100000, '\n');
+                continue;
+            }
+
+            if (cmd == "RECENT_FILES") {
+                vector<File*> recent_files = mod_heap.k_max(k);
+                for (File* f : recent_files) {
+                    cout << ctime(&f->last_modified) << f->root->message << endl;
+                }
+            } else if (cmd == "BIGGEST_TREES") {
+                vector<File*> biggest_trees = ver_heap.k_max(k);
+                for (File* f : biggest_trees) {
+                    cout << f->total_versions << " " << f->root->message << endl;
+                }
+            }
+            continue;
+        }
+        
+
         if (cin.peek() == '\n') {
             cout << "No file name provided" << endl;
             continue;
@@ -49,6 +75,8 @@ int main() {
             if (open_files.find(filename) == open_files.end()) {
                 open_files[filename] = create_file(filename);
                 cout << "File created: " << filename << endl;
+                ver_heap.insert(open_files[filename]);
+                mod_heap.insert(open_files[filename]);
             } else {
                 cout << "ERROR! File already exists: " << filename << endl;
             }

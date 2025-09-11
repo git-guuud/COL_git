@@ -30,8 +30,7 @@ public:
 
     C cmp;
 
-    FileHeap(C c) {
-        cmp = c;
+    FileHeap(const C& c) : cmp(c) {
     }
 
     void insert(T file) {
@@ -49,7 +48,7 @@ public:
     }
 
     T pop_max() {
-        if (size == 0) return nullptr;
+        if (size == 0) throw runtime_error("Heap is empty");
 
         T max_file = files[0];
         files[0] = files[size - 1];
@@ -77,9 +76,16 @@ public:
         }
     }
 
+    void build_heap() {
+        for (int i = size / 2 - 1; i >= 0; i--) {
+            heapify(i);
+        }
+    }
+
     vector<T> k_max(int k) {
+        build_heap();
         vector<T> result;
-        auto p_cmp = [](const pair<int, T>& a, const pair<int, T>& b) {
+        auto p_cmp = [this](const pair<int, T>& a, const pair<int, T>& b) {
             return cmp(a.second, b.second);
         };
         auto temp_heap = FileHeap<pair<int, T>, decltype(p_cmp)>(p_cmp);
@@ -112,6 +118,7 @@ File* create_file(string filename) {
     new_file->active_version = new_file->root;
     new_file->total_versions = 1;
     new_file->version_map[0] = new_file->root;
+    new_file->last_modified = time(nullptr);
     return new_file;
 }
 
@@ -136,6 +143,7 @@ void update_file(File* file, string content) {
     } else {
         version->content = content;
     }
+    file->last_modified = time(nullptr);
 }
 
 void snapshot_file(File* file, string message) {
