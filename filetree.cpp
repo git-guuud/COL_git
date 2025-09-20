@@ -1,8 +1,10 @@
 #include <string>
 #include <vector>
-#include <unordered_map>
+#include "map.cpp"
 #include <ctime>
 using namespace std;
+
+
 
 struct TreeNode {
     int version_id;
@@ -14,6 +16,8 @@ struct TreeNode {
     vector<TreeNode*> children;
 };
 
+
+
 struct File {
     TreeNode* root;
     TreeNode* active_version;
@@ -21,6 +25,8 @@ struct File {
     int total_versions;
     time_t last_modified;
 };
+
+
 
 template<typename T, typename C>
 class FileHeap {
@@ -104,6 +110,9 @@ public:
     }
 };
 
+
+
+
 File* create_file(string filename) {
     File* new_file = new File();
     new_file->root = new TreeNode {
@@ -117,10 +126,11 @@ File* create_file(string filename) {
     };
     new_file->active_version = new_file->root;
     new_file->total_versions = 1;
-    new_file->version_map[0] = new_file->root;
+    new_file->version_map.insert(0, new_file->root);
     new_file->last_modified = time(nullptr);
     return new_file;
 }
+
 
 void update_file(File* file, string content) {
     if (file == nullptr) return;
@@ -138,13 +148,14 @@ void update_file(File* file, string content) {
         };
         version->children.push_back(new_version);
         file->active_version = new_version;
-        file->version_map[file->total_versions] = new_version;
+        file->version_map.insert(file->total_versions, new_version);
         file->total_versions++;
     } else {
         version->content = content;
     }
     file->last_modified = time(nullptr);
 }
+
 
 void snapshot_file(File* file, string message) {
     if (file == nullptr) return;
@@ -154,10 +165,11 @@ void snapshot_file(File* file, string message) {
     version->message = message;
 }
 
+
 void rollback_file(File* file, int version_id) {
     if (version_id == -1) {
         file->active_version = file->active_version->parent;
     } else {
-        file->active_version = file->version_map[version_id];
+        file->active_version = file->version_map.get(version_id);
     }
 }
