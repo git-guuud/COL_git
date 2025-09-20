@@ -72,11 +72,11 @@ int main() {
 
         
         if (cmd == "CREATE") {
-            if (open_files.find(filename) == open_files.end()) {
-                open_files[filename] = create_file(filename);
+            if (!open_files.find(filename)) {
+                open_files.insert(filename, create_file(filename));
                 cout << "File created: " << filename << endl;
-                ver_heap.insert(open_files[filename]);
-                mod_heap.insert(open_files[filename]);
+                ver_heap.insert(open_files.get(filename));
+                mod_heap.insert(open_files.get(filename));
             } else {
                 cout << "ERROR! File already exists: " << filename << endl;
             }
@@ -84,8 +84,8 @@ int main() {
         }
         
         File* file = nullptr;
-        if (open_files.find(filename) != open_files.end()) {
-            file = open_files[filename];
+        if (open_files.find(filename)) {
+            file = open_files.get(filename);
         } else {
             cout << "ERROR! File not found: " << filename << endl;
             continue;
@@ -115,7 +115,7 @@ int main() {
                     cout << "No previous version to rollback to." << endl;
                     continue;
                 }
-            } else if (file->version_map.find(version_id) == file->version_map.end()) {
+            } else if (!file->version_map.find(version_id)) {
                 cout << "Version ID not found: " << version_id << endl;
                 continue;
             }
